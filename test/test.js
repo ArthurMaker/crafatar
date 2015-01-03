@@ -160,6 +160,23 @@ describe("Crafatar", function() {
     });
   });
 
+  // we have to make sure that we test both a 32x64 and 64x64 skin
+  describe("Networking: Render", function() {
+    it("should not fail (username, 32x64 skin)", function(done) {
+      helpers.get_render("md_5", 6, true, true, function(err, hash, img) {
+        assert.strictEqual(err, null);
+        done();
+      });
+    });
+    it("should not fail (username, 64x64 skin)", function(done) {
+    helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
+        assert.strictEqual(err, null);
+        done();
+      });
+    });
+  });
+
+
   // DRY with uuid and username tests
   for (var i in ids) {
     var id = ids[i];
@@ -209,17 +226,14 @@ describe("Crafatar", function() {
       });
 
       describe("Networking: Render", function() {
-        it("should not fail (username, 64x64 skin)", function(done) {
-          helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
+        it("should not fail (full body)", function(done) {
+          helpers.get_render(id, 6, true, true, function(err, hash, img) {
             assert.strictEqual(err, null);
             done();
           });
         });
-      });
-
-      describe("Networking: Render", function() {
-        it("should not fail (username, 32x64 skin)", function(done) {
-          helpers.get_render("md_5", 6, true, true, function(err, hash, img) {
+        it("should not fail (only head)", function(done) {
+          helpers.get_render(id, 6, true, false, function(err, hash, img) {
             assert.strictEqual(err, null);
             done();
           });
@@ -235,6 +249,7 @@ describe("Crafatar", function() {
         if (id_type == "uuid") {
           it("uuid should be rate limited", function(done) {
             helpers.get_avatar(id, false, 160, function(err, status, image) {
+              console.log("THIS THING:: " + err)
               assert.strictEqual(JSON.parse(err).error, "TooManyRequestsException");
               done();
             });
