@@ -46,6 +46,7 @@ module.exports = function(req, res) {
 
   try {
     helpers.get_avatar(uuid, helm, size, function(err, status, image, hash) {
+      console.log("WAS CALLED BACK")
       logging.log(uuid + " - " + human_status[status]);
       if (err) {
         logging.error(uuid + " " + err);
