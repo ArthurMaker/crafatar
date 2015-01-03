@@ -80,10 +80,8 @@ describe("Crafatar", function() {
     });
     it("should not exist (uuid)", function(done) {
       networking.get_profile("00000000000000000000000000000000", function(err, profile) {
-        networking.get_uuid_url(profile, 1, function(err, url) {
-          assert.strictEqual(url, null);
-          done();
-        });
+        assert.strictEqual(profile, null);
+        done();
       });
     });
     it("should not exist (username)", function(done) {

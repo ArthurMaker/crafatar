@@ -77,7 +77,7 @@ exp.get_from_options = function(url, options, callback) {
       logging.error(url + " Unknown error:");
       logging.log(response.statusCode)
       //logging.error(response);
-      callback(body || "Unknown error", response, error);
+      callback(null, response, error);
     }
   });
 };
