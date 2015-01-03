@@ -13,7 +13,8 @@ var routes = {
   index: require("./routes/index"),
   avatars: require("./routes/avatars"),
   skins: require("./routes/skins"),
-  renders: require("./routes/renders")
+  renders: require("./routes/renders"),
+  capes: require("./routes/capes")
 };
 
 function asset_request(req, res) {
@@ -60,6 +61,9 @@ function requestHandler(req, res) {
           break;
         case "renders":
           routes.renders(request, res);
+          break;
+        case "capes":
+          routes.capes(request, res);
           break;
         default:
           asset_request(request, res);

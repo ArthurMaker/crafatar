@@ -22,7 +22,7 @@ function get_hash(url) {
 function store_images(uuid, details, whichhash, callback) {
   networking.get_profile(uuid.length <= 16 ? null : uuid, function(err, profile) {
     console.log("PROFILE: " + profile)
-    if (err || !profile) {
+    if (err || (uuid.length > 16 && !profile)) {
       callback(err, null);
       console.log("WILL CALL BACK HERE 2")
       return;

@@ -176,6 +176,15 @@ describe("Crafatar", function() {
     });
   });
 
+  describe("Networking: Cape", function() {
+    it("should not fail (guaranteed cape)", function(done) {
+      helpers.get_cape("Dinnerbone", function(err, hash, img) {
+        assert.notStrictEqual(img, null);
+        done();
+      });
+    });
+  });
+
 
   // DRY with uuid and username tests
   for (var i in ids) {
@@ -234,6 +243,15 @@ describe("Crafatar", function() {
         });
         it("should not fail (only head)", function(done) {
           helpers.get_render(id, 6, true, false, function(err, hash, img) {
+            assert.strictEqual(err, null);
+            done();
+          });
+        });
+      });
+
+      describe("Networking: Cape", function() {
+        it("should not fail (possible cape)", function(done) {
+          helpers.get_skin(id, function(err, hash, img) {
             assert.strictEqual(err, null);
             done();
           });
