@@ -128,18 +128,6 @@ function store_images(uuid, details, whichhash, callback) {
 }
 })(url);
 }
-});
-}
-});
-}
-}
-}
-} else {
-  if (whichhash == raw_type) {
-    callback(null, null);
-  }
-}
-}
 cache.save_hash(uuid, hashes["skin"], hashes["cape"]);
 });
 });
@@ -309,7 +297,7 @@ exp.get_skin = function(uuid, callback) {
       });
       return;
     }
-    networking.save_skin(uuid, hash, skinpath, function(err, img) {
+    networking.save_texture(uuid, hash, skinpath, function(err, response, img) {
       callback(err, hash, img);
     });
   });
@@ -320,6 +308,11 @@ exp.get_skin = function(uuid, callback) {
 exp.get_cape = function(uuid, callback) {
   logging.log(uuid + " cape request");
   exp.get_image_hash(uuid, "cape", function(err, status, hash) {
+    console.log("CAPE IMAGE HASH:" + hash)
+    if (!hash) {
+      callback(err, null, null);
+      return;
+    }
     var capepath = __dirname + "/../" + config.capes_path + hash + ".png";
     if (fs.existsSync(capepath)) {
       logging.log("cape already exists, not downloading");
@@ -328,8 +321,12 @@ exp.get_cape = function(uuid, callback) {
       });
       return;
     }
-    networking.save_skin(uuid, hash, capepath, function(err, img) {
-      callback(err, hash, img);
+    networking.save_texture(uuid, hash, capepath, function(err, response, img) {
+      if (response && response.statusCode == 404) {
+        callback(err, hash, null);
+      } else {
+        callback(err, hash, img);
+      }
     });
   });
 };
