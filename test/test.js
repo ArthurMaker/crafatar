@@ -99,10 +99,13 @@ describe("Crafatar", function() {
     var steven_uuid = "b8ffc3d37dbf48278f69475f6690aabd";
 
     it("uuid's account should exist, but skin should not", function(done) {
-      helpers.get_avatar(alex_uuid, false, 160, function(err, status, image) {
-        assert.strictEqual(status, 2);
-        done();
-      });
+      networking.get_profile(alex_uuid, function(err, profile) {
+        assert.strictEqual(err, null);
+        helpers.get_avatar(alex_uuid, false, 160, function(err, status, image) {
+          assert.strictEqual(status, 2);
+          done();
+        });
+      })
     });
     it("odd UUID should default to Alex", function(done) {
       assert.strictEqual(skins.default_skin(alex_uuid), "alex");
@@ -157,94 +160,94 @@ describe("Crafatar", function() {
     });
   });
 
-  // // DRY with uuid and username tests
-  // for (var i in ids) {
-  //   var id = ids[i];
-  //   var id_type = id.length > 16 ? "uuid" : "name";
-  //   // needs an anonymous function because id and id_type aren't constant
-  //   (function(id, id_type) {
-  //     describe("Networking: Avatar", function() {
-  //       before(function() {
-  //         cache.get_redis().flushall();
-  //         console.log("\n\nRunning tests with " + id_type + " '" + id + "'\n\n");
-  //       });
+  // DRY with uuid and username tests
+  for (var i in ids) {
+    var id = ids[i];
+    var id_type = id.length > 16 ? "uuid" : "name";
+    // needs an anonymous function because id and id_type aren't constant
+    (function(id, id_type) {
+      describe("Networking: Avatar", function() {
+        before(function() {
+          cache.get_redis().flushall();
+          console.log("\n\nRunning tests with " + id_type + " '" + id + "'\n\n");
+        });
 
-  //       it("should be downloaded", function(done) {
-  //         helpers.get_avatar(id, false, 160, function(err, status, image) {
-  //           assert.strictEqual(status, 2);
-  //           done();
-  //         });
-  //       });
-  //       it("should be cached", function(done) {
-  //         helpers.get_avatar(id, false, 160, function(err, status, image) {
-  //           assert.strictEqual(status === 0 || status === 1, true);
-  //           done();
-  //         });
-  //       });
-  //       if (id.length > 16) {
-  //         console.log("can't run 'checked' test due to Mojang's rate limits :(");
-  //       } else {
-  //         it("should be checked", function(done) {
-  //           var original_cache_time = config.local_cache_time;
-  //           config.local_cache_time = 0;
-  //           helpers.get_avatar(id, false, 160, function(err, status, image) {
-  //             assert.strictEqual(status, 3);
-  //             config.local_cache_time = original_cache_time;
-  //             done();
-  //           });
-  //         });
-  //       }
-  //     });
+        it("should be downloaded", function(done) {
+          helpers.get_avatar(id, false, 160, function(err, status, image) {
+            assert.strictEqual(status, 2);
+            done();
+          });
+        });
+        it("should be cached", function(done) {
+          helpers.get_avatar(id, false, 160, function(err, status, image) {
+            assert.strictEqual(status === 0 || status === 1, true);
+            done();
+          });
+        });
+        if (id.length > 16) {
+          console.log("can't run 'checked' test due to Mojang's rate limits :(");
+        } else {
+          it("should be checked", function(done) {
+            var original_cache_time = config.local_cache_time;
+            config.local_cache_time = 0;
+            helpers.get_avatar(id, false, 160, function(err, status, image) {
+              assert.strictEqual(status, 3);
+              config.local_cache_time = original_cache_time;
+              done();
+            });
+          });
+        }
+      });
 
-  //     describe("Networking: Skin", function() {
-  //       it("should not fail (uuid)", function(done) {
-  //         helpers.get_skin(id, function(err, hash, img) {
-  //           assert.strictEqual(err, null);
-  //           done();
-  //         });
-  //       });
-  //     });
+      describe("Networking: Skin", function() {
+        it("should not fail (uuid)", function(done) {
+          helpers.get_skin(id, function(err, hash, img) {
+            assert.strictEqual(err, null);
+            done();
+          });
+        });
+      });
 
-  //     describe("Networking: Render", function() {
-  //       it("should not fail (username, 64x64 skin)", function(done) {
-  //         helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
-  //           assert.strictEqual(err, null);
-  //           done();
-  //         });
-  //       });
-  //     });
+      describe("Networking: Render", function() {
+        it("should not fail (username, 64x64 skin)", function(done) {
+          helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
+            assert.strictEqual(err, null);
+            done();
+          });
+        });
+      });
 
-  //     describe("Networking: Render", function() {
-  //       it("should not fail (username, 32x64 skin)", function(done) {
-  //         helpers.get_render("md_5", 6, true, true, function(err, hash, img) {
-  //           assert.strictEqual(err, null);
-  //           done();
-  //         });
-  //       });
-  //     });
+      describe("Networking: Render", function() {
+        it("should not fail (username, 32x64 skin)", function(done) {
+          helpers.get_render("md_5", 6, true, true, function(err, hash, img) {
+            assert.strictEqual(err, null);
+            done();
+          });
+        });
+      });
 
 
-  //     describe("Errors", function() {
-  //       before(function() {
-  //         cache.get_redis().flushall();
-  //       });
+      describe("Errors", function() {
+        before(function() {
+          cache.get_redis().flushall();
+        });
 
-  //       if (id_type == "uuid") {
-  //         it("uuid should be rate limited", function(done) {
-  //           helpers.get_avatar(id, false, 160, function(err, status, image) {
-  //             assert.strictEqual(JSON.parse(err).error, "TooManyRequestsException");
-  //             done();
-  //           });
-  //         });
-  //       } else {
-  //         it("username should NOT be rate limited (username)", function(done) {
-  //           helpers.get_avatar(id, false, 160, function(err, status, image) {
-  //             assert.strictEqual(err, null);
-  //             done();
-  //           });
-  //         });
-  //       }
-  //     });
-  //   })(id, id_type);
-  // }
+        if (id_type == "uuid") {
+          it("uuid should be rate limited", function(done) {
+            helpers.get_avatar(id, false, 160, function(err, status, image) {
+              assert.strictEqual(JSON.parse(err).error, "TooManyRequestsException");
+              done();
+            });
+          });
+        } else {
+          it("username should NOT be rate limited (username)", function(done) {
+            helpers.get_avatar(id, false, 160, function(err, status, image) {
+              assert.strictEqual(err, null);
+              done();
+            });
+          });
+        }
+      });
+    })(id, id_type);
+  }
 });

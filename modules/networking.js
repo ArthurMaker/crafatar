@@ -61,7 +61,7 @@ exp.get_from_options = function(url, options, callback) {
     if (!error && (response.statusCode == 200 || response.statusCode == 301)) {
       // skin_url received successfully
       logging.log(url + " url received");
-      callback(body, response, error);
+      callback(body, response, null);
     } else if (error) {
       callback(null, response, error);
     } else if (response.statusCode == 404) {
@@ -127,7 +127,7 @@ exp.get_profile = function(uuid, callback) {
     callback(null, null);
   } else {
     exp.get_from(session_url + uuid, function(body, response, err) {
-      callback(err, (body != null ? JSON.parse(body) : null));
+      callback(err ? err : null, (body != null ? JSON.parse(body) : null));
     }); 
   }
 };

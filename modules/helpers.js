@@ -21,8 +21,10 @@ function get_hash(url) {
 // +callback+ contains the error buffer and image hash
 function store_images(uuid, details, whichhash, callback) {
   networking.get_profile(uuid.length <= 16 ? null : uuid, function(err, profile) {
-    if (err) {
+    console.log("PROFILE: " + profile)
+    if (err || !profile) {
       callback(err, null);
+      console.log("WILL CALL BACK HERE 2")
       return;
     }
     networking.get_skin_url(uuid, profile, function(skin_url) {
@@ -32,8 +34,10 @@ function store_images(uuid, details, whichhash, callback) {
         for (i = 0; i < urls.length; i++) {
           var url = urls[i];
           (function(url) {
+            console.log("looping with URl: " + url)
             logging.debug("URL: " + url);
             var raw_type = (url == skin_url ? "skin" : "cape");
+            console.log("TYPE IS: " + raw_type + " LOOKING FOR " + whichhash)
             if (url != null) {
               var hash = get_hash(url);
               logging.debug("Type is: " + raw_type)
@@ -42,6 +46,7 @@ function store_images(uuid, details, whichhash, callback) {
                 logging.log(uuid + " hash has not changed for " + raw_type);
                 cache.update_timestamp(uuid, hash);
                 if (whichhash == raw_type) {
+                  console.log("WILL CALL BACK HERE 1")
                   callback(null, hash);
                 }
               } else {
@@ -60,6 +65,7 @@ function store_images(uuid, details, whichhash, callback) {
                 if (fs.existsSync(verifypath)) {
                   logging.log(uuid + " " + raw_type + " already exists, not downloading");
                   if (whichhash == raw_type) {
+                    console.log("WILL CALL BACK HERE 2")
                     callback(null, hash);
                   }
                 } else {
@@ -67,6 +73,7 @@ function store_images(uuid, details, whichhash, callback) {
                     networking.get_from(skin_url, function(img, response, err) {
                       if (err || !img) {
                         if (raw_type == whichhash) {
+                          console.log("WILL CALL BACK HERE 3")
                           callback(err, null);
                         }
                       } else {
@@ -74,6 +81,7 @@ function store_images(uuid, details, whichhash, callback) {
                           if (err) {
                             logging.error(err);
                             if (whichhash == raw_type) {
+                              console.log("WILL CALL BACK HERE 4")
                               callback(err);
                             }
                           } else {
@@ -83,6 +91,7 @@ function store_images(uuid, details, whichhash, callback) {
                               logging.log(uuid + " helm extracted");
                               logging.debug(helmpath);
                               if (whichhash == raw_type) {
+                                console.log("WILL CALL BACK HERE 5")
                                 callback(err, hash);
                               }
                             });
@@ -97,12 +106,14 @@ function store_images(uuid, details, whichhash, callback) {
                       if (err || !img) {
                         logging.error(err);
                         if (whichhash == raw_type) {
+                          console.log("WILL CALL BACK HERE 6")
                           callback(err, null);
                         }
                       } else {
                         skins.save_image(img, verifypath, function(err) {
                           logging.log(uuid + " cape saved");
                           if (whichhash == raw_type) {
+                            console.log("WILL CALL BACK HERE 7")
                             callback(err, hash);
                           }
                         });
@@ -113,6 +124,8 @@ function store_images(uuid, details, whichhash, callback) {
               }
             } else {
               if (whichhash == raw_type) {
+                console.log("WILL CALL BACK HERE 8")
+                raw_type == "cape" ? hashes["cape"] = null : hashes["skin"] = null;
                 callback(null, null);
               }
             }
@@ -145,11 +158,13 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
     var type = (details != null ? (raw_type == "skin" ? details.skin : details.cape) : null);
     if (err) {
       callback(err, -1, null);
+      console.log("CALLING BACK HASH 4")
     } else {
       if (details && details.time + config.local_cache_time * 1000 >= new Date().getTime()) {
         // uuid known + recently updated
         logging.log(uuid + " uuid cached & recently updated");
         callback(null, (type ? 1 : 0), type);
+        console.log("CALLING BACK HASH 3")
       } else {
         if (details) {
           logging.log(uuid + " uuid cached, but too old");
@@ -159,6 +174,7 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
         store_images(uuid, details, raw_type, function(err, hash) {
           if (err) {
             callback(err, -1, details && type);
+            console.log("CALLING BACK HASH 1")
           } else {
             // skin is only checked (3) when uuid known AND hash didn't change
             // in all other cases the skin is downloaded (2)
@@ -166,6 +182,7 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
             logging.debug(uuid + " old hash: " + (details && type));
             logging.log(uuid + " hash: " + hash);
             callback(null, status, hash);
+            console.log("CALLING BACK HASH 2")
           }
         });
       }
@@ -181,17 +198,14 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
 exp.get_avatar = function(uuid, helm, size, callback) {
   logging.log("\nrequest: " + uuid);
   exp.get_image_hash(uuid, "skin", function(err, status, hash) {
-    console.log("CALLED BACK");
     if (hash) {
       var facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
       var helmpath = __dirname + "/../" + config.helms_dir + hash + ".png";
       var filepath = facepath;
-
       fs.exists(helmpath, function (exists) {
         if (helm && exists) {
           filepath = helmpath;
         }
-
         skins.resize_img(filepath, size, function(img_err, result) {
           if (img_err) {
             callback(img_err, -1, null, hash);
@@ -205,6 +219,7 @@ exp.get_avatar = function(uuid, helm, size, callback) {
     } else {
       // hash is null when uuid has no skin
       callback(err, status, null, null);
+      console.log("BUT HERE TOO")
     }
   });
 };
