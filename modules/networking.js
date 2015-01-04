@@ -63,21 +63,20 @@ exp.get_from_options = function(url, options, callback) {
       logging.log(url + " url received");
       callback(body, response, null);
     } else if (error) {
-      callback(null, response, error);
+      callback(body || null, response, error);
     } else if (response.statusCode == 404) {
-      // skin (or user) doesn't exist
+      // page doesn't exist
       logging.log(url + " url does not exist");
       callback(null, response, null);
     } else if (response.statusCode == 429) {
-      // Too Many Requests
-      // Never got this, seems like skins aren't limited
+      // Too Many Requests exception - code 429
       logging.warn(body || "Too many requests");
-      callback(null, response, null);
+      callback(body || null, response, error);
     } else {
       logging.error(url + " Unknown error:");
       logging.log(response.statusCode)
       //logging.error(response);
-      callback(null, response, error);
+      callback(body || null, response, error);
     }
   });
 };
@@ -126,8 +125,8 @@ exp.get_profile = function(uuid, callback) {
   if (uuid == null) {
     callback(null, null);
   } else {
-    exp.get_from(session_url + uuid, function(body, response, err) {
-      callback(err ? err : null, (body != null ? JSON.parse(body) : null));
+    exp.get_from_options(session_url + uuid, {encoding: "utf8"} ,function(body, response, err) {
+      callback(err != null ? err : null, (body != null ? JSON.parse(body) : null));
     }); 
   }
 };

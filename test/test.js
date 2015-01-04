@@ -8,6 +8,7 @@ var config = require("../modules/config");
 var skins = require("../modules/skins");
 var cache = require("../modules/cache");
 var renders = require("../modules/renders");
+var cleaner = require("../modules/cleaner")
 
 // we don't want tests to fail because of slow internet
 config.http_timeout *= 3;
@@ -22,6 +23,10 @@ var names = fs.readFileSync("test/usernames.txt").toString().split(/\r?\n/);
 var uuid = uuids[Math.round(Math.random() * (uuids.length - 1))];
 var name = names[Math.round(Math.random() * (names.length - 1))];
 
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var ids = [
   uuid.toLowerCase(),
   uuid.toUpperCase(),
@@ -35,6 +40,7 @@ describe("Crafatar", function() {
 
   before(function() {
     cache.get_redis().flushall();
+    cleaner.run();
   });
 
   describe("UUID/username", function() {
@@ -79,7 +85,8 @@ describe("Crafatar", function() {
       done();
     });
     it("should not exist (uuid)", function(done) {
-      networking.get_profile("00000000000000000000000000000000", function(err, profile) {
+      var number = getRandomInt(0, 9).toString();
+      networking.get_profile(Array(33).join(number), function(err, profile) {
         assert.strictEqual(profile, null);
         done();
       });
@@ -100,7 +107,7 @@ describe("Crafatar", function() {
 
     it("uuid's account should exist, but skin should not", function(done) {
       networking.get_profile(alex_uuid, function(err, profile) {
-        assert.strictEqual(err, null);
+        assert.notStrictEqual(profile, null);
         helpers.get_avatar(alex_uuid, false, 160, function(err, status, image) {
           assert.strictEqual(status, 2);
           done();
@@ -169,7 +176,7 @@ describe("Crafatar", function() {
       });
     });
     it("should not fail (username, 64x64 skin)", function(done) {
-    helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
+      helpers.get_render("Jake0oo0", 6, true, true, function(err, hash, img) {
         assert.strictEqual(err, null);
         done();
       });
@@ -179,7 +186,7 @@ describe("Crafatar", function() {
   describe("Networking: Cape", function() {
     it("should not fail (guaranteed cape)", function(done) {
       helpers.get_cape("Dinnerbone", function(err, hash, img) {
-        assert.notStrictEqual(img, null);
+        assert.strictEqual(err, null);
         done();
       });
     });
@@ -251,7 +258,7 @@ describe("Crafatar", function() {
 
       describe("Networking: Cape", function() {
         it("should not fail (possible cape)", function(done) {
-          helpers.get_skin(id, function(err, hash, img) {
+          helpers.get_cape(id, function(err, hash, img) {
             assert.strictEqual(err, null);
             done();
           });
@@ -266,9 +273,9 @@ describe("Crafatar", function() {
 
         if (id_type == "uuid") {
           it("uuid should be rate limited", function(done) {
-            helpers.get_avatar(id, false, 160, function(err, status, image) {
+            networking.get_profile(id, function(err, profile) {
               console.log("THIS THING:: " + err)
-              assert.strictEqual(JSON.parse(err).error, "TooManyRequestsException");
+              assert.strictEqual(profile.error, "TooManyRequestsException");
               done();
             });
           });
