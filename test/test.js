@@ -108,8 +108,8 @@ describe("Crafatar", function() {
     it("uuid's account should exist, but skin should not", function(done) {
       networking.get_profile(alex_uuid, function(err, profile) {
         assert.notStrictEqual(profile, null);
-        helpers.get_avatar(alex_uuid, false, 160, function(err, status, image) {
-          assert.strictEqual(status, 2);
+        networking.get_uuid_url(profile, 1, function(url) {
+          assert.strictEqual(url, null);
           done();
         });
       })
