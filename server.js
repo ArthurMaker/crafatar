@@ -5,7 +5,6 @@ var config = require("./modules/config");
 var clean = require("./modules/cleaner");
 var http = require("http");
 var mime = require("mime");
-var path = require("path");
 var url = require("url");
 var fs = require("fs");
 
@@ -38,7 +37,7 @@ function requestHandler(req, res) {
   request.url.query = request.url.query || {};
 
   // remove trailing and double slashes + other junk
-  var path_list = path.resolve(request.url.pathname).split("/");
+  var path_list = request.url.pathname.split("/");
   for (var i = 0; i < path_list.length; i++) {
     // URL decode
     path_list[i] = querystring.unescape(path_list[i]);
