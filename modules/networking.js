@@ -140,11 +140,11 @@ exp.get_skin_url = function(uuid, profile, callback) {
   if (uuid.length <= 16) {
     //username
     exp.get_username_url(uuid, 1, function(err, url) {
-      callback(url);
+      callback(url ? url : null);
     });
   } else {
     exp.get_uuid_url(profile, 1, function(url) {
-      callback(url);
+      callback(url ? url : null);
     });
   }
 };
@@ -156,11 +156,11 @@ exp.get_cape_url = function(uuid, profile, callback) {
   if (uuid.length <= 16) {
     //username
     exp.get_username_url(uuid, 2, function(err, url) {
-      callback(url);
+      callback(url ? url : null);
     });
   } else {
     exp.get_uuid_url(profile, 2, function(url) {
-      callback(url);
+      callback(url ? url : null);
     });
   }
 };
