@@ -23,7 +23,7 @@ module.exports = function(req, res) {
   var raw_type = (req.url.path_list[2] || "");
 
   // validate type
-  if (raw_type != "body" && raw_type != "head") {
+  if (raw_type !== "body" && raw_type !== "head") {
     res.writeHead(422, {
       "Content-Type": "text/plain",
       "Response-Time": new Date() - start
@@ -32,7 +32,7 @@ module.exports = function(req, res) {
     return;
   }
 
-  var body = raw_type == "body";
+  var body = raw_type === "body";
   var uuid = (req.url.path_list[3] || "").split(".")[0];
   var def = req.url.query.default;
   var scale = parseInt(req.url.query.scale) || config.default_scale;
@@ -65,7 +65,7 @@ module.exports = function(req, res) {
         logging.error(uuid + " " + err);
       }
       etag = hash && hash.substr(0, 32) || "none";
-      var matches = req.headers["if-none-match"] == '"' + etag + '"';
+      var matches = req.headers["if-none-match"] === '"' + etag + '"';
       if (image) {
         var http_status = 200;
         if (matches) {
@@ -91,7 +91,7 @@ module.exports = function(req, res) {
   // default alex/steve images can be rendered, but
   // custom images will not be
   function handle_default(http_status, img_status) {
-    if (def && def != "steve" && def != "alex") {
+    if (def && def !== "steve" && def !== "alex") {
       logging.log("status: 301");
       res.writeHead(301, {
         "Cache-Control": "max-age=" + config.browser_cache_time + ", public",
@@ -129,6 +129,6 @@ module.exports = function(req, res) {
       "Access-Control-Allow-Origin": "*",
       "Etag": '"' + etag + '"'
     });
-    res.end(http_status == 304 ? null : image);
+    res.end(http_status === 304 ? null : image);
   }
 };

@@ -16,7 +16,7 @@ exp.extract_skin_url = function(profile) {
   var url = null;
   if (profile && profile.properties) {
     profile.properties.forEach(function(prop) {
-      if (prop.name == "textures") {
+      if (prop.name === "textures") {
         var json = Buffer(prop.value, "base64").toString();
         var props = JSON.parse(json);
         url = props && props.textures && props.textures.SKIN && props.textures.SKIN.url || null;
@@ -32,7 +32,7 @@ exp.extract_cape_url = function(profile) {
   var url = null;
   if (profile && profile.properties) {
     profile.properties.forEach(function(prop) {
-      if (prop.name == "textures") {
+      if (prop.name === "textures") {
         var json = Buffer(prop.value, "base64").toString();
         var props = JSON.parse(json);
         url = props && props.textures && props.textures.CAPE && props.textures.CAPE.url || null;

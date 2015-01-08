@@ -1,4 +1,3 @@
-var networking = require("../modules/networking");
 var logging = require("../modules/logging");
 var helpers = require("../modules/helpers");
 var config = require("../modules/config");
@@ -22,7 +21,7 @@ module.exports = function(req, res) {
       "Content-Type": "text/plain",
       "Response-Time": new Date() - start
     });
-    res.end("Invalid UUID");
+    res.end("Invalid ID");
     return;
   }
 
@@ -36,7 +35,7 @@ module.exports = function(req, res) {
         logging.error(uuid + " " + err);
       }
       etag = hash && hash.substr(0, 32) || "none";
-      var matches = req.headers["if-none-match"] == '"' + etag + '"';
+      var matches = req.headers["if-none-match"] === '"' + etag + '"';
       if (image) {
         var http_status = 200;
         if (matches) {
@@ -73,6 +72,6 @@ module.exports = function(req, res) {
       "Access-Control-Allow-Origin": "*",
       "Etag": '"' + etag + '"'
     });
-    res.end(http_status == 304 ? null : image);
+    res.end(http_status === 304 ? null : image);
   }
 };

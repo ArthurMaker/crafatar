@@ -55,7 +55,7 @@ module.exports = function(req, res) {
         }
       }
       etag = image && hash && hash.substr(0, 32) || "none";
-      var matches = req.headers["if-none-match"] == '"' + etag + '"';
+      var matches = req.headers["if-none-match"] === '"' + etag + '"';
       if (image) {
         var http_status = 200;
         if (matches) {
@@ -77,7 +77,7 @@ module.exports = function(req, res) {
   }
 
   function handle_default(http_status, img_status) {
-    if (def && def != "steve" && def != "alex") {
+    if (def && def !== "steve" && def !== "alex") {
       logging.log("status: 301");
       res.writeHead(301, {
         "Cache-Control": "max-age=" + config.browser_cache_time + ", public",
@@ -105,6 +105,6 @@ module.exports = function(req, res) {
       "Access-Control-Allow-Origin": "*",
       "Etag": '"' + etag + '"'
     });
-    res.end(http_status == 304 ? null : image);
+    res.end(http_status === 304 ? null : image);
   }
 };

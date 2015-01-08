@@ -127,8 +127,8 @@ exp.get_details = function(uuid, callback) {
     var details = null;
     if (data) {
       details = {
-        skin: (data.s == "." ? null : data.s),
-        cape: (data.c == "." ? null : data.c),
+        skin: (data.s === "." ? null : data.s),
+        cape: (data.c === "." ? null : data.c),
         time: Number(data.t)
       };
     }
