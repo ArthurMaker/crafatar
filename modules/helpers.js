@@ -69,7 +69,6 @@ function store_cape(uuid, profile, details, callback) {
       } else {
         logging.log(uuid + " new cape hash: " + hash);
         var capepath = __dirname + "/../" + config.capes_dir + hash + ".png";
-        hashes.cape = hash;
         if (fs.existsSync(capepath)) {
           logging.log(uuid + " cape already exists, not downloading");
           callback(null, hash);
