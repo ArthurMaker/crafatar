@@ -135,33 +135,32 @@ exp.get_profile = function(uuid, callback) {
 // +uuid+ is used to get the url, otherwise
 // +profile+ will be used to get the url
 exp.get_skin_url = function(uuid, profile, callback) {
-  if (uuid.length <= 16) {
-    //username
-    exp.get_username_url(uuid, 1, function(err, url) {
-      callback(url || null);
-    });
-  } else {
-    exp.get_uuid_url(profile, 1, function(url) {
-      callback(url || null);
-    });
-  }
+  getUrl(uuid, profile, 1, function(url) {
+    callback(url);
+  });
 };
 
 // +uuid+ is likely a username and if so
 // +uuid+ is used to get the url, otherwise
 // +profile+ will be used to get the url
 exp.get_cape_url = function(uuid, profile, callback) {
+  getUrl(uuid, profile, 2, function(url) {
+    callback(url);
+  });
+};
+
+function getUrl(uuid, profile, type, callback) {
   if (uuid.length <= 16) {
     //username
-    exp.get_username_url(uuid, 2, function(err, url) {
+    exp.get_username_url(uuid, type, function(err, url) {
       callback(url || null);
     });
   } else {
-    exp.get_uuid_url(profile, 2, function(url) {
+    exp.get_uuid_url(profile, type, function(url) {
       callback(url || null);
     });
   }
-};
+}
 
 // downloads skin file from +url+
 // callback contains error, image
