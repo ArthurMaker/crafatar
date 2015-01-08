@@ -9,36 +9,30 @@ var capes_url = "https://skins.minecraft.net/MinecraftCloaks/";
 
 var exp = {};
 
-// exracts the skin url of a +profile+ object
-// returns null when no url found (user has no skin)
-exp.extract_skin_url = function(profile) {
+function extract_url(profile, property) {
   var url = null;
   if (profile && profile.properties) {
     profile.properties.forEach(function(prop) {
       if (prop.name === "textures") {
         var json = new Buffer(prop.value, "base64").toString();
         var props = JSON.parse(json);
-        url = props && props.textures && props.textures.SKIN && props.textures.SKIN.url || null;
+        url = props && props.textures && props.textures[property] && props.textures[property].url || null;
       }
     });
   }
   return url;
 };
 
+// exracts the skin url of a +profile+ object
+// returns null when no url found (user has no skin)
+exp.extract_skin_url = function(profile) {
+  return extract_url(profile, 'SKIN');
+};
+
 // exracts the cape url of a +profile+ object
 // returns null when no url found (user has no cape)
 exp.extract_cape_url = function(profile) {
-  var url = null;
-  if (profile && profile.properties) {
-    profile.properties.forEach(function(prop) {
-      if (prop.name === "textures") {
-        var json = new Buffer(prop.value, "base64").toString();
-        var props = JSON.parse(json);
-        url = props && props.textures && props.textures.CAPE && props.textures.CAPE.url || null;
-      }
-    });
-  }
-  return url;
+  return extract_url(profile, 'CAPE');
 };
 
 // makes a GET request to the +url+
