@@ -232,27 +232,30 @@ exp.get_render = function(uuid, scale, helm, body, callback) {
       return;
     }
     var renderpath = __dirname + "/../" + config.renders_dir + hash + "-" + scale + "-" + get_type(helm, body) + ".png";
-    if (fs.existsSync(renderpath)) {
-      renders.open_render(renderpath, function(err, img) {
-        callback(err, 1, hash, img);
-      });
-      return;
-    }
-    if (!img) {
-      callback(err, 0, hash, null);
-      return;
-    }
-    renders.draw_model(uuid, img, scale, helm, body, function(err, img) {
-      if (err) {
-        callback(err, -1, hash, null);
-      } else if (!img) {
-        callback(null, 0, hash, null);
+    fs.exists(renderpath, function(exists) {
+      if (exists) {
+        renders.open_render(renderpath, function(err, img) {
+          callback(err, 1, hash, img);
+        });
+        return;
       } else {
-        fs.writeFile(renderpath, img, "binary", function(err) {
+        if (!img) {
+          callback(err, 0, hash, null);
+          return;
+        }
+        renders.draw_model(uuid, img, scale, helm, body, function(err, img) {
           if (err) {
-            logging.log(err);
+            callback(err, -1, hash, null);
+          } else if (!img) {
+            callback(null, 0, hash, null);
+          } else {
+            fs.writeFile(renderpath, img, "binary", function(err) {
+              if (err) {
+                logging.log(err);
+              }
+              callback(null, 2, hash, img);
+            });
           }
-          callback(null, 2, hash, img);
         });
       }
     });
@@ -266,15 +269,17 @@ exp.get_skin = function(uuid, callback) {
   logging.log(uuid + " skin request");
   exp.get_image_hash(uuid, "skin", function(err, status, hash) {
     var skinpath = __dirname + "/../" + config.skins_dir + hash + ".png";
-    if (fs.existsSync(skinpath)) {
-      logging.log("skin already exists, not downloading");
-      skins.open_skin(skinpath, function(err, img) {
-        callback(err, hash, img);
-      });
-      return;
-    }
-    networking.save_texture(uuid, hash, skinpath, function(err, response, img) {
-      callback(err, hash, img);
+    fs.exists(skinpath, function(exists) {
+      if (exists) {
+        logging.log("skin already exists, not downloading");
+        skins.open_skin(skinpath, function(err, img) {
+          callback(err, hash, img);
+        });
+      } else {
+        networking.save_texture(uuid, hash, skinpath, function(err, response, img) {
+          callback(err, hash, img);
+        });
+      }
     });
   });
 };
@@ -289,18 +294,20 @@ exp.get_cape = function(uuid, callback) {
       return;
     }
     var capepath = __dirname + "/../" + config.capes_path + hash + ".png";
-    if (fs.existsSync(capepath)) {
-      logging.log("cape already exists, not downloading");
-      skins.open_skin(capepath, function(err, img) {
-        callback(err, hash, img);
-      });
-      return;
-    }
-    networking.save_texture(uuid, hash, capepath, function(err, response, img) {
-      if (response && response.statusCode === 404) {
-        callback(err, hash, null);
+    fs.exists(capepath, function(exists) {
+      if (exists) {
+        logging.log("cape already exists, not downloading");
+        skins.open_skin(capepath, function(err, img) {
+          callback(err, hash, img);
+        });
       } else {
-        callback(err, hash, img);
+        networking.save_texture(uuid, hash, capepath, function(err, response, img) {
+          if (response && response.statusCode === 404) {
+            callback(err, hash, null);
+          } else {
+            callback(err, hash, img);
+          }
+        });
       }
     });
   });
