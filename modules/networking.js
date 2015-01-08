@@ -1,7 +1,6 @@
 var logging = require("./logging");
 var request = require("request");
 var config = require("./config");
-var skins = require("./skins");
 var fs = require("fs");
 
 var session_url = "https://sessionserver.mojang.com/session/minecraft/profile/";
@@ -17,14 +16,14 @@ exp.extract_skin_url = function(profile) {
   if (profile && profile.properties) {
     profile.properties.forEach(function(prop) {
       if (prop.name === "textures") {
-        var json = Buffer(prop.value, "base64").toString();
+        var json = new Buffer(prop.value, "base64").toString();
         var props = JSON.parse(json);
         url = props && props.textures && props.textures.SKIN && props.textures.SKIN.url || null;
       }
     });
   }
   return url;
-}
+};
 
 // exracts the cape url of a +profile+ object
 // returns null when no url found (user has no cape)
@@ -33,14 +32,14 @@ exp.extract_cape_url = function(profile) {
   if (profile && profile.properties) {
     profile.properties.forEach(function(prop) {
       if (prop.name === "textures") {
-        var json = Buffer(prop.value, "base64").toString();
+        var json = new Buffer(prop.value, "base64").toString();
         var props = JSON.parse(json);
         url = props && props.textures && props.textures.CAPE && props.textures.CAPE.url || null;
       }
     });
   }
   return url;
-}
+};
 
 // makes a GET request to the +url+
 // +options+ hash includes various options for
@@ -54,9 +53,9 @@ exp.get_from_options = function(url, options, callback) {
     headers: {
       "User-Agent": "https://crafatar.com"
     },
-    timeout: (options["timeout"] || config.http_timeout),
-    encoding: (options["encoding"] || null),
-    followRedirect: (options["followRedirect"] || false)
+    timeout: (options.timeout || config.http_timeout),
+    encoding: (options.encoding || null),
+    followRedirect: (options.folow_redirect || false)
   }, function(error, response, body) {
     if (!error && (response.statusCode === 200 || response.statusCode === 301)) {
       // skin_url received successfully
@@ -74,7 +73,6 @@ exp.get_from_options = function(url, options, callback) {
       callback(body || null, response, error);
     } else {
       logging.error(url + " Unknown error:");
-      logging.log(response.statusCode)
       //logging.error(response);
       callback(body || null, response, error);
     }
@@ -110,19 +108,19 @@ exp.get_username_url = function(name, type, callback) {
 // gets the URL for a skin/cape from the profile
 // +type+ specifies which to retrieve
 exp.get_uuid_url = function(profile, type, callback) {
+  var url = null;
   if (type === 1) {
-    var url = exp.extract_skin_url(profile)
-    callback(url ? url : null);
+    url = exp.extract_skin_url(profile);
   } else if (type === 2) {
-    var url = exp.extract_cape_url(profile)
-    callback(url ? url : null);
+    url = exp.extract_cape_url(profile);
   }
+  callback(url || null);
 };
 
 // make a request to sessionserver
 // profile is returned as json
 exp.get_profile = function(uuid, callback) {
-  if (uuid === null) {
+  if (uuid) {
     callback(null, null);
   } else {
     exp.get_from_options(session_url + uuid, {encoding: "utf8"} ,function(body, response, err) {
@@ -168,7 +166,7 @@ exp.get_cape_url = function(uuid, profile, callback) {
 // downloads skin file from +url+
 // callback contains error, image
 exp.get_skin = function(url, callback) {
-  exp.get_from(url, response, function(body, err) {
+  exp.get_from(url, function(body, response, err) {
     callback(body, err);
   });
 };
