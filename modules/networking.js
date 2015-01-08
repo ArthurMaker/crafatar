@@ -102,7 +102,7 @@ exp.get_username_url = function(name, type, callback) {
     } else {
       callback(err, null);
     }
-  })
+  });
 };
 
 // gets the URL for a skin/cape from the profile
