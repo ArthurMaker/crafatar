@@ -1,5 +1,5 @@
 var logging = require("./logging");
-var request = require("request");
+var request = require("requestretry");
 var config = require("./config");
 var fs = require("fs");
 
@@ -35,6 +35,11 @@ exp.extract_cape_url = function(profile) {
   return extract_url(profile, 'CAPE');
 };
 
+function timeoutRetry(err, response){
+  // retry the request if we had an error or if the response was a 'Bad Gateway'
+  return err;
+}
+
 // makes a GET request to the +url+
 // +options+ hash includes various options for
 // encoding and timeouts, defaults are already
@@ -42,14 +47,17 @@ exp.extract_cape_url = function(profile) {
 // and error buffer. get_from helper method is available
 exp.get_from_options = function(url, options, callback) {
   logging.log("requesting url " + url);
-  request.get({
+  request({
     url: url,
     headers: {
       "User-Agent": "https://crafatar.com"
     },
     timeout: (options.timeout || config.http_timeout),
     encoding: (options.encoding || null),
-    followRedirect: (options.folow_redirect || false)
+    followRedirect: (options.folow_redirect || false),
+    maxAttempts: 2,
+    retryDelay: 1000,
+    retryStrategy: timeoutRetry
   }, function(error, response, body) {
     if (!error && (response.statusCode === 200 || response.statusCode === 301)) {
       // skin_url received successfully
