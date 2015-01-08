@@ -25,33 +25,33 @@ function store_skin(uuid, profile, details, callback) {
       } else {
         logging.log(uuid + " new skin hash: " + hash);
         var facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
-        var helmpath = __dirname + "/../" + config.helms_dir + hash + ".png";
-
-        if (fs.existsSync(facepath)) {
-          logging.log(uuid + " skin already exists, not downloading");
-          callback(null, hash);
-          
-        } else {
-          networking.get_from(url, function(img, response, err) {
-            if (err || !img) {
-              callback(err, null);
-            } else {
-              skins.extract_face(img, facepath, function(err) {
-                if (err) {
-                  logging.error(err);
-                  callback(err, null);
-                } else {
-                  logging.log(uuid + " face extracted");
-                  skins.extract_helm(facepath, img, helmpath, function(err) {
-                    logging.log(uuid + " helm extracted");
-                    logging.debug(helmpath);
-                    callback(err, hash);
-                  });
-                }
-              });
-            }
-          });
-        }
+        var helmpath = __dirname + "/../" + config.helms_dir + hash + ".png"
+        fs.exists(facepath, function(exists) {
+          if (exists) {
+            logging.log(uuid + " skin already exists, not downloading");
+            callback(null, hash);
+          } else {
+            networking.get_from(url, function(img, response, err) {
+              if (err || !img) {
+                callback(err, null);
+              } else {
+                skins.extract_face(img, facepath, function(err) {
+                  if (err) {
+                    logging.error(err);
+                    callback(err, null);
+                  } else {
+                    logging.log(uuid + " face extracted");
+                    skins.extract_helm(facepath, img, helmpath, function(err) {
+                      logging.log(uuid + " helm extracted");
+                      logging.debug(helmpath);
+                      callback(err, hash);
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
       }
     } else {
       callback(null, null);
@@ -69,22 +69,24 @@ function store_cape(uuid, profile, details, callback) {
       } else {
         logging.log(uuid + " new cape hash: " + hash);
         var capepath = __dirname + "/../" + config.capes_dir + hash + ".png";
-        if (fs.existsSync(capepath)) {
-          logging.log(uuid + " cape already exists, not downloading");
-          callback(null, hash);
-        } else {
-          networking.get_from(url, function(img, response, err) {
-            if (err || !img) {
-              logging.error(err);
-              callback(err, null);
-            } else {
-              skins.save_image(img, capepath, function(err) {
-                logging.log(uuid + " cape saved");
-                callback(err, hash);              
-              });
-            }
-          });
-        }
+        fs.exists(capepath, function(exists) {
+          if (exists) {
+            logging.log(uuid + " cape already exists, not downloading");
+            callback(null, hash);
+          } else {
+            networking.get_from(url, function(img, response, err) {
+              if (err || !img) {
+                logging.error(err);
+                callback(err, null);
+              } else {
+                skins.save_image(img, capepath, function(err) {
+                  logging.log(uuid + " cape saved");
+                  callback(err, hash);              
+                });
+              }
+            });
+          }
+        });
       }
     } else {
       callback(null, null);
