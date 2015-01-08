@@ -15,114 +15,104 @@ function get_hash(url) {
   return hash_pattern.exec(url)[0].toLowerCase();
 }
 
+function store_skin(uuid, profile, details, callback) {
+  networking.get_skin_url(uuid, profile, function(url) {
+    if (url) {
+      var hash = get_hash(url);
+      if (details && details.skin === hash) {
+        cache.update_timestamp(uuid, hash);
+        callback(null, hash);
+      } else {
+        logging.log(uuid + " new skin hash: " + hash);
+        var facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
+        var helmpath = __dirname + "/../" + config.helms_dir + hash + ".png";
+
+        if (fs.existsSync(facepath)) {
+          logging.log(uuid + " skin already exists, not downloading");
+          callback(null, hash);
+          
+        } else {
+          networking.get_from(url, function(img, response, err) {
+            if (err || !img) {
+              callback(err, null);
+            } else {
+              skins.extract_face(img, facepath, function(err) {
+                if (err) {
+                  logging.error(err);
+                  callback(err, null);
+                } else {
+                  logging.log(uuid + " face extracted");
+                  skins.extract_helm(facepath, img, helmpath, function(err) {
+                    logging.log(uuid + " helm extracted");
+                    logging.debug(helmpath);
+                    callback(err, hash);
+                  });
+                }
+              });
+            }
+          });
+        }
+      }
+    } else {
+      callback(null, null);
+    }
+  });
+}
+
+function store_cape(uuid, profile, details, callback) {
+  networking.get_cape_url(uuid, profile, function(url) {
+    if (url) {
+      var hash = get_hash(url);
+      if (details && details.cape === hash) {
+        cache.update_timestamp(uuid, hash);
+        callback(null, hash);
+      } else {
+        logging.log(uuid + " new cape hash: " + hash);
+        var capepath = __dirname + "/../" + config.capes_dir + hash + ".png";
+        hashes.cape = hash;
+        if (fs.existsSync(capepath)) {
+          logging.log(uuid + " cape already exists, not downloading");
+          callback(null, hash);
+        } else {
+          networking.get_from(url, function(img, response, err) {
+            if (err || !img) {
+              logging.error(err);
+              callback(err, null);
+            } else {
+              skins.save_image(img, capepath, function(err) {
+                logging.log(uuid + " cape saved");
+                callback(err, hash);              
+              });
+            }
+          });
+        }
+      }
+    } else {
+      callback(null, null);
+    }
+  });
+}
+
 // downloads the images for +uuid+ while checking the cache
 // status based on +details+. +whichhash+ specifies which
 // image is more important, and should be called back on
 // +callback+ contains the error buffer and image hash
 function store_images(uuid, details, whichhash, callback) {
-  networking.get_profile(uuid.length <= 16 ? null : uuid, function(err, profile) {
-    if (err || (uuid.length > 16 && !profile)) {
+  var isUsername = uuid.length <= 16
+  networking.get_profile(isUsername ? null : uuid, function(err, profile) {
+    if (err || (!isUsername && !profile)) {
+      console.log(" THIS WAS NULL ")
       callback(err, null);
-      return;
-    }
-    networking.get_skin_url(uuid, profile, function(skin_url) {
-      networking.get_cape_url(uuid, profile, function(cape_url) {
-        var urls = [skin_url, cape_url],
-          hashes = {};
-        for (i = 0; i < urls.length; i++) {
-          var url = urls[i];
-          (function(url) {
-            logging.debug("URL: " + url);
-            var raw_type = (url == skin_url ? "skin" : "cape");
-            if (url != null) {
-              var hash = get_hash(url);
-              logging.debug("Type is: " + raw_type)
-              var type = details != null ? (url == urls[0] ? details.skin : details.cape) : null;
-              if (details && type == hash) {
-                cache.update_timestamp(uuid, hash);
-                if (whichhash == raw_type) {
-                  callback(null, hash);
-                }
-              } else {
-                logging.log(uuid + " new " + raw_type + " hash: " + hash);
-                var verifypath = null;
-                var facepath = null;
-                var helmpath = null;
-                if (raw_type == "skin") {
-                  facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
-                  helmpath = __dirname + "/../" + config.helms_dir + hash + ".png";
-                  verifypath = facepath;
-                } else if (raw_type == "cape") {
-                  verifypath = __dirname + "/../" + config.capes_dir + hash + ".png";
-                }
-                raw_type == "cape" ? hashes["cape"] = hash : hashes["skin"] = hash;
-                if (fs.existsSync(verifypath)) {
-                  logging.log(uuid + " " + raw_type + " already exists, not downloading");
-                  if (whichhash == raw_type) {
-                    callback(null, hash);
-                  }
-                } else {
-                  if (raw_type == "skin") {
-                    networking.get_from(skin_url, function(img, response, err) {
-                      if (err || !img) {
-                        if (raw_type == whichhash) {
-                          callback(err, null);
-                        }
-                      } else {
-                        skins.extract_face(img, verifypath, function(err) {
-                          if (err) {
-                            logging.error(err);
-                            if (whichhash == raw_type) {
-                              callback(err);
-                            }
-                          } else {
-                            logging.log(uuid + " face extracted");
-                            logging.debug(verifypath);
-                            skins.extract_helm(verifypath, img, helmpath, function(err) {
-                              logging.log(uuid + " helm extracted");
-                              logging.debug(helmpath);
-                              if (whichhash == raw_type) {
-                                callback(err, hash);
-                              }
-                            });
-                          }
-                        });
-                      }
-                    });
-                  } else if (raw_type == "cape") {
-                    logging.debug("Cape url: " + cape_url)
-                    networking.get_from(cape_url, function(img, response, err) {
-                      logging.log(uuid + " downloaded cape");
-                      if (err || !img) {
-                        logging.error(err);
-                        if (whichhash == raw_type) {
-                          callback(err, null);
-                        }
-                      } else {
-                        skins.save_image(img, verifypath, function(err) {
-                          logging.log(uuid + " cape saved");
-                          if (whichhash == raw_type) {
-                            callback(err, hash);
-                          }
-                        });
-                      }
-                    });
-                  }
-                }
-              }
-            } else {
-              if (whichhash == raw_type) {
-                raw_type == "cape" ? hashes["cape"] = null : hashes["skin"] = null;
-                callback(null, null);
-              }
-            }
-          })(url);
-        }
-        cache.save_hash(uuid, hashes["skin"], hashes["cape"]);
+    } else {
+      store_skin(uuid, profile, details, function(err, skin_hash) {
+        store_cape(uuid, profile, details, function(err, cape_hash) {
+          cache.save_hash(uuid, skin_hash, cape_hash);
+          callback(err, whichhash === 'skin' ? skin_hash : cape_hash);
+        });
       });
-    });
+    }
   });
-};
+}
 
 var exp = {};
 
