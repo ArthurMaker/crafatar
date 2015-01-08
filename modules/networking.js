@@ -114,7 +114,7 @@ exp.get_uuid_url = function(profile, type, callback) {
 // make a request to sessionserver
 // profile is returned as json
 exp.get_profile = function(uuid, callback) {
-  if (uuid) {
+  if (!uuid) {
     callback(null, null);
   } else {
     exp.get_from_options(session_url + uuid, {encoding: "utf8"} ,function(body, response, err) {

@@ -99,10 +99,11 @@ function store_cape(uuid, profile, details, callback) {
 // image is more important, and should be called back on
 // +callback+ contains the error buffer and image hash
 function store_images(uuid, details, whichhash, callback) {
-  var isUsername = uuid.length <= 16
-  networking.get_profile(isUsername ? null : uuid, function(err, profile) {
-    if (err || (!isUsername && !profile)) {
-      callback(err, null);
+  var isUUID = uuid.length > 16
+  networking.get_profile((isUUID ? uuid : null), function(err, profile) {
+    if (err || (isUUID && !profile)) {
+
+      callback(err, nll);
     } else {
       store_skin(uuid, profile, details, function(err, skin_hash) {
         store_cape(uuid, profile, details, function(err, cape_hash) {
@@ -169,7 +170,7 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
 // image is the user's face+helm when helm is true, or the face otherwise
 // for status, see get_image_hash
 exp.get_avatar = function(uuid, helm, size, callback) {
-  logging.log("\nrequest: " + uuid);
+  logging.log("request: " + uuid);
   exp.get_image_hash(uuid, "skin", function(err, status, hash) {
     if (hash) {
       var facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
