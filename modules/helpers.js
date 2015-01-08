@@ -101,7 +101,6 @@ function store_images(uuid, details, whichhash, callback) {
   var isUsername = uuid.length <= 16
   networking.get_profile(isUsername ? null : uuid, function(err, profile) {
     if (err || (!isUsername && !profile)) {
-      console.log(" THIS WAS NULL ")
       callback(err, null);
     } else {
       store_skin(uuid, profile, details, function(err, skin_hash) {
