@@ -58,17 +58,17 @@ exp.get_from_options = function(url, options, callback) {
     encoding: (options["encoding"] || null),
     followRedirect: (options["followRedirect"] || false)
   }, function(error, response, body) {
-    if (!error && (response.statusCode == 200 || response.statusCode == 301)) {
+    if (!error && (response.statusCode === 200 || response.statusCode === 301)) {
       // skin_url received successfully
       logging.log(url + " url received");
       callback(body, response, null);
     } else if (error) {
       callback(body || null, response, error);
-    } else if (response.statusCode == 404) {
+    } else if (response.statusCode === 404) {
       // page doesn't exist
       logging.log(url + " url does not exist");
       callback(null, response, null);
-    } else if (response.statusCode == 429) {
+    } else if (response.statusCode === 429) {
       // Too Many Requests exception - code 429
       logging.warn(body || "Too many requests");
       callback(body || null, response, error);
@@ -100,7 +100,7 @@ var mojang_url_types = {
 exp.get_username_url = function(name, type, callback) {
   exp.get_from(mojang_url_types[type] + name + ".png", function(body, response, err) {
     if (!err) {
-      callback(err, response ? (response.statusCode == 404 ? null : response.headers.location) : null);
+      callback(err, response ? (response.statusCode === 404 ? null : response.headers.location) : null);
     } else {
       callback(err, null);
     }
@@ -110,10 +110,10 @@ exp.get_username_url = function(name, type, callback) {
 // gets the URL for a skin/cape from the profile
 // +type+ specifies which to retrieve
 exp.get_uuid_url = function(profile, type, callback) {
-  if (type == 1) {
+  if (type === 1) {
     var url = exp.extract_skin_url(profile)
     callback(url ? url : null);
-  } else if (type == 2) {
+  } else if (type === 2) {
     var url = exp.extract_cape_url(profile)
     callback(url ? url : null);
   }
@@ -122,11 +122,11 @@ exp.get_uuid_url = function(profile, type, callback) {
 // make a request to sessionserver
 // profile is returned as json
 exp.get_profile = function(uuid, callback) {
-  if (uuid == null) {
+  if (uuid === null) {
     callback(null, null);
   } else {
     exp.get_from_options(session_url + uuid, {encoding: "utf8"} ,function(body, response, err) {
-      callback(err != null ? err : null, (body != null ? JSON.parse(body) : null));
+      callback(err !== null ? err : null, (body !== null ? JSON.parse(body) : null));
     }); 
   }
 };

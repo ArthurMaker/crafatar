@@ -43,7 +43,7 @@ exp.draw_head = function(skin_canvas, model_ctx, scale) {
 // using the skin from the +model_ctx+ at the +scale+
 // parts are labeled as if drawn from the skin's POV
 exp.draw_body = function(skin_canvas, model_ctx, scale) {
-  if (skin_canvas.height == 32 * scale) {
+  if (skin_canvas.height === 32 * scale) {
     logging.log("old skin");
     //Left Leg
     //Left Leg - Front
@@ -140,7 +140,7 @@ exp.draw_model = function(uuid, img, scale, helm, body, callback) {
 
   image.onload = function() {
     var width = 64 * scale;
-    var original_height = (image.height == 32 ? 32 : 64);
+    var original_height = (image.height === 32 ? 32 : 64);
     var height = original_height * scale;
     var model_canvas = new Canvas(20 * scale, (body ? 44.8 : 17.6) * scale);
     var skin_canvas = new Canvas(width, height);

@@ -131,7 +131,7 @@ exp.uuid_valid = function(uuid) {
 //   3: "checked" - profile re-downloaded (was too old), but it has either not changed or has no skin
 exp.get_image_hash = function(uuid, raw_type, callback) {
   cache.get_details(uuid, function(err, details) {
-    var type = (details != null ? (raw_type == "skin" ? details.skin : details.cape) : null);
+    var type = (details != null ? (raw_type === "skin" ? details.skin : details.cape) : null);
     if (err) {
       callback(err, -1, null);
     } else {
@@ -151,7 +151,7 @@ exp.get_image_hash = function(uuid, raw_type, callback) {
           } else {
             // skin is only checked (3) when uuid known AND hash didn't change
             // in all other cases the skin is downloaded (2)
-            var status = details && (type == hash) ? 3 : 2;
+            var status = details && (type === hash) ? 3 : 2;
             logging.debug(uuid + " old hash: " + (details && type));
             logging.log(uuid + " hash: " + hash);
             callback(null, status, hash);
@@ -296,7 +296,7 @@ exp.get_cape = function(uuid, callback) {
       return;
     }
     networking.save_texture(uuid, hash, capepath, function(err, response, img) {
-      if (response && response.statusCode == 404) {
+      if (response && response.statusCode === 404) {
         callback(err, hash, null);
       } else {
         callback(err, hash, img);
