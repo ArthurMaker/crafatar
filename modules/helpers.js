@@ -130,6 +130,7 @@ function store_images(uuid, details, whichhash, callback) {
       } else {
         store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
           store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
+            cache.save_hash(uuid, skin_hash, cape_hash);
             callback_for(uuid, err, cape_hash, skin_hash, callback);
           });
         });
