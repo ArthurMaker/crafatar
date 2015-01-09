@@ -128,23 +128,13 @@ function store_images(uuid, details, whichhash, callback) {
       if (err || (isUUID && !profile)) {
         callback_for(uuid, err, null, null, callback);
       } else {
-        if (whichhash == 'skin') {
-          store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
-            callback_for(uuid, 'skin', err, null, skin_hash, callback);
-            store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
-              cache.save_hash(uuid, skin_hash, cape_hash);
-              callback_for(uuid, 'cape', err, cape_hash, skin_hash, callback);
-            });
-          });
-        } else {
+        store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
+          callback_for(uuid, 'skin', err, null, skin_hash, callback);
           store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
-            callback_for(uuid, 'cape', err, cape_hash, null, callback);
-            store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
-              cache.save_hash(uuid, skin_hash, cape_hash);
-              callback_for(uuid, 'skin', err, cape_hash, skin_hash, callback);
-            });
+            cache.save_hash(uuid, skin_hash, cape_hash);
+            callback_for(uuid, 'cape', err, cape_hash, skin_hash, callback);
           });
-        }
+        });
       }
     });
   } else {
