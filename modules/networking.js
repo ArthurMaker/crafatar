@@ -35,11 +35,6 @@ exp.extract_cape_url = function(profile) {
   return extract_url(profile, 'CAPE');
 };
 
-function timeoutRetry(err, response){
-  // retry the request if we had an error or if the response was a 'Bad Gateway'
-  return err;
-}
-
 // makes a GET request to the +url+
 // +options+ hash includes various options for
 // encoding and timeouts, defaults are already
@@ -56,8 +51,8 @@ exp.get_from_options = function(url, options, callback) {
     encoding: (options.encoding || null),
     followRedirect: (options.folow_redirect || false),
     maxAttempts: 2,
-    retryDelay: 1000,
-    retryStrategy: timeoutRetry
+    retryDelay: 2000,
+    retryStrategy: request.RetryStrategies.NetworkError
   }, function(error, response, body) {
     if (!error && (response.statusCode === 200 || response.statusCode === 301)) {
       // skin_url received successfully

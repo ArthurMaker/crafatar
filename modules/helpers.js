@@ -21,7 +21,7 @@ function store_skin(uuid, profile, details, callback) {
       var hash = get_hash(url);
       if (details && details.skin === hash) {
         cache.update_timestamp(uuid, hash);
-        callback(null, hash);
+        callback(null, hash, url);
       } else {
         logging.log(uuid + " new skin hash: " + hash);
         var facepath = __dirname + "/../" + config.faces_dir + hash + ".png";
@@ -29,22 +29,22 @@ function store_skin(uuid, profile, details, callback) {
         fs.exists(facepath, function(exists) {
           if (exists) {
             logging.log(uuid + " skin already exists, not downloading");
-            callback(null, hash);
+            callback(null, hash, url);
           } else {
             networking.get_from(url, function(img, response, err) {
               if (err || !img) {
-                callback(err, null);
+                callback(err, null, url);
               } else {
                 skins.extract_face(img, facepath, function(err) {
                   if (err) {
                     logging.error(err);
-                    callback(err, null);
+                    callback(err, null, url);
                   } else {
                     logging.log(uuid + " face extracted");
                     skins.extract_helm(facepath, img, helmpath, function(err) {
                       logging.log(uuid + " helm extracted");
                       logging.debug(helmpath);
-                      callback(err, hash);
+                      callback(err, hash, url);
                     });
                   }
                 });
@@ -54,7 +54,7 @@ function store_skin(uuid, profile, details, callback) {
         });
       }
     } else {
-      callback(null, null);
+      callback(null, null, null);
     }
   });
 }
@@ -65,23 +65,23 @@ function store_cape(uuid, profile, details, callback) {
       var hash = get_hash(url);
       if (details && details.cape === hash) {
         cache.update_timestamp(uuid, hash);
-        callback(null, hash);
+        callback(null, hash, utl);
       } else {
         logging.log(uuid + " new cape hash: " + hash);
         var capepath = __dirname + "/../" + config.capes_dir + hash + ".png";
         fs.exists(capepath, function(exists) {
           if (exists) {
             logging.log(uuid + " cape already exists, not downloading");
-            callback(null, hash);
+            callback(null, hash, url);
           } else {
             networking.get_from(url, function(img, response, err) {
               if (err || !img) {
                 logging.error(err);
-                callback(err, null);
+                callback(err, null, url);
               } else {
                 skins.save_image(img, capepath, function(err) {
                   logging.log(uuid + " cape saved");
-                  callback(err, hash);              
+                  callback(err, hash, url);              
                 });
               }
             });
@@ -89,7 +89,7 @@ function store_cape(uuid, profile, details, callback) {
         });
       }
     } else {
-      callback(null, null);
+      callback(null, null, null);
     }
   });
 }
@@ -98,21 +98,46 @@ function store_cape(uuid, profile, details, callback) {
 // status based on +details+. +whichhash+ specifies which
 // image is more important, and should be called back on
 // +callback+ contains the error buffer and image hash
+var currently_running = []
+function callback_for(uuid, err, cape_hash, skin_hash, callback) {
+  console.log(currently_running.to_json)
+  for (var i = 0; i < currently_running.length; i++) {
+    if (currently_running[i].uuid === uuid) {
+      var will_call = currently_running[i];
+      currently_running.pop(will_call);
+      will_call.callback(err, will_call.which === 'skin' ? skin_hash : cape_hash)
+    }
+  }
+}
+
+function array_has_hash(arr, property, value) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i][property] === value) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function store_images(uuid, details, whichhash, callback) {
   var isUUID = uuid.length > 16
-  networking.get_profile((isUUID ? uuid : null), function(err, profile) {
-    if (err || (isUUID && !profile)) {
-
-      callback(err, nll);
-    } else {
-      store_skin(uuid, profile, details, function(err, skin_hash) {
-        store_cape(uuid, profile, details, function(err, cape_hash) {
-          cache.save_hash(uuid, skin_hash, cape_hash);
-          callback(err, whichhash === 'skin' ? skin_hash : cape_hash);
+  var new_hash = { 'uuid': uuid, 'which': whichhash, 'callback': callback };
+  if (!array_has_hash(currently_running, 'uuid', uuid)) {
+    currently_running.push(new_hash);
+    networking.get_profile((isUUID ? uuid : null), function(err, profile) {
+      if (err || (isUUID && !profile)) {
+        callback_for(uuid, err, null, null, callback);
+      } else {
+        store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
+          store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
+            callback_for(uuid, err, cape_hash, skin_hash, callback);
+          });
         });
-      });
-    }
-  });
+      }
+    });
+  } else {
+    currently_running.push(new_hash);
+  }
 }
 
 var exp = {};
