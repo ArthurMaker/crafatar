@@ -99,10 +99,10 @@ function store_cape(uuid, profile, details, callback) {
 // image is more important, and should be called back on
 // +callback+ contains the error buffer and image hash
 var currently_running = []
-function callback_for(uuid, err, cape_hash, skin_hash, callback) {
+function callback_for(uuid, which, err, cape_hash, skin_hash, callback) {
   console.log(currently_running.to_json)
   for (var i = 0; i < currently_running.length; i++) {
-    if (currently_running[i].uuid === uuid) {
+    if (currently_running[i].uuid === uuid && currently_running[i].which == which) {
       var will_call = currently_running[i];
       currently_running.pop(will_call);
       will_call.callback(err, will_call.which === 'skin' ? skin_hash : cape_hash)
@@ -130,18 +130,18 @@ function store_images(uuid, details, whichhash, callback) {
       } else {
         if (whichhash == 'skin') {
           store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
-            callback_for(uuid, err, cape_hash, skin_hash, callback);
+            callback_for(uuid, 'skin', err, null, skin_hash, callback);
             store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
               cache.save_hash(uuid, skin_hash, cape_hash);
-              callback_for(uuid, err, cape_hash, skin_hash, callback);
+              callback_for(uuid, 'cape', err, cape_hash, skin_hash, callback);
             });
           });
         } else {
-          store_cape(uuid, profile, details, function(err, skin_hash, skin_url) {
-            callback_for(uuid, err, cape_hash, skin_hash, callback);
-            store_skin(uuid, profile, details, function(err, cape_hash, cape_url) {
+          store_cape(uuid, profile, details, function(err, cape_hash, cape_url) {
+            callback_for(uuid, 'cape', err, cape_hash, null, callback);
+            store_skin(uuid, profile, details, function(err, skin_hash, skin_url) {
               cache.save_hash(uuid, skin_hash, cape_hash);
-              callback_for(uuid, err, cape_hash, skin_hash, callback);
+              callback_for(uuid, 'skin', err, cape_hash, skin_hash, callback);
             });
           });
         }
