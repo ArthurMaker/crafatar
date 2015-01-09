@@ -52,15 +52,17 @@ module.exports = function(req, res) {
           "Content-Type": "text/plain",
           "Response-Time": new Date() - start
         });
+        res.end("404 not found");
       }
     });
   } catch(e) {
     logging.error(uuid + " error:");
     logging.error(e);
-    res.writeHead(404, {
+    res.writeHead(500, {
       "Content-Type": "text/plain",
       "Response-Time": new Date() - start
     });
+    res.end("500 server error");
   }
 
   function sendimage(http_status, img_status, image) {
