@@ -8,11 +8,7 @@ function debug() {
   }
 }
 
-function devnull() {
-
-}
-
-exp.log = devnull;
+exp.log = console.log;
 exp.warn = console.warn;
 exp.error = console.error;
 exp.debug = debug;
