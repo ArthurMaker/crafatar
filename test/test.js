@@ -213,6 +213,7 @@ describe("Crafatar", function() {
         });
         it("should be cached", function(done) {
           helpers.get_avatar(id, false, 160, function(err, status, image) {
+            console.log("STATUS: " + status)
             assert.strictEqual(status === 0 || status === 1, true);
             done();
           });
